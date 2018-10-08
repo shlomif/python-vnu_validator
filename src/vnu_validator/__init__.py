@@ -51,6 +51,13 @@ class VnuValidate:
 
 
 class VnuTest(unittest.TestCase):
+    """
+    One can find some examples for this here:
+
+    * https://github.com/shlomif/better-scm/blob/master/Tests/validate-html-using-vnu.py
+    * https://github.com/shlomif/perl-begin/blob/master/Tests/validate-html-using-vnu.py
+    * https://github.com/shlomif/shlomi-fish-homepage/blob/master/Tests/validate-html-using-vnu.py
+    """
     def vnu_test_dir(self, path, non_xhtml_cb, skip_cb):
         """
         A unit test helper for checking a directory tree.
