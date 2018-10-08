@@ -9,7 +9,15 @@ import unittest
 
 
 class VnuValidate:
-    """docstring for VnuValidate"""
+    """
+    Run the Nu HTML Validator on a directory tree of XHTML5 and HTML5 files.
+
+    :param path the path of the root directory
+    :param jar path to the Java .jar of the Nu validator
+    :param non_xhtml_cb A callback that accepts a path and returns whether it
+    is not XHTML
+    :param skip_cb Return whether a path should be skipped entirely
+    """
     def __init__(self, path, jar, non_xhtml_cb, skip_cb):
         self.path = path
         self.jar = jar
@@ -17,7 +25,9 @@ class VnuValidate:
         self.skip_cb = skip_cb
 
     def run(self):
-        """docstring for run"""
+        """
+        :returns boolean for sucess or failure.
+        """
         t = tempfile.TemporaryDirectory()
         for dirpath, _, fns in os.walk(self.path):
             dn = join(t.name, dirpath)
@@ -41,11 +51,21 @@ class VnuValidate:
 
 
 class VnuTest(unittest.TestCase):
-    def vnu_test_dir(self, dir_, non_xhtml_cb, skip_cb):
+    def vnu_test_dir(self, path, non_xhtml_cb, skip_cb):
+        """
+        A unit test helper for checking a directory tree.
+        :param path the path of the root directory
+        :param non_xhtml_cb A callback that accepts a path and returns whether
+        it
+        :param skip_cb Return whether a path should be skipped entirely
+
+        Uses an environment variable HTML_VALID_VNU_JAR that points to the
+        validator .jar (see https://github.com/validator/validator/ ).
+        """
         key = 'HTML_VALID_VNU_JAR'
         if key in os.environ:
             self.assertTrue(
-                VnuValidate(dir_, os.environ[key], non_xhtml_cb,
+                VnuValidate(path, os.environ[key], non_xhtml_cb,
                             skip_cb).run(),
                 "passed validation")
         else:
