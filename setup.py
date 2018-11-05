@@ -24,7 +24,7 @@ def read(*names, **kwargs):
 
 setup(
     name='vnu-validator',
-    version='0.2.1',
+    version='0.4.0',
     license='MIT license',
     description='Python Wrapper for the v.Nu HTML Validator',
     long_description='%s\n%s' % (

@@ -1,10 +1,13 @@
 __version__ = '0.1.0'
 
+import hashlib
+import json
 import os
 from os.path import join
 import re
 import tempfile
-from subprocess import call
+from subprocess import Popen, PIPE
+from urllib.parse import urlparse
 import unittest
 
 
@@ -17,54 +20,118 @@ class VnuValidate:
     :param non_xhtml_cb A callback that accepts a path and returns whether it
     is not XHTML
     :param skip_cb Return whether a path should be skipped entirely
+    :param cache_path An optional path to a cache file to speed up
+    subsequent runs
     """
-    def __init__(self, path, jar, non_xhtml_cb, skip_cb):
+    def __init__(self, path, jar, non_xhtml_cb, skip_cb, cache_path=None):
         self.path = path
         self.jar = jar
         self.non_xhtml_cb = non_xhtml_cb
         self.skip_cb = skip_cb
+        self.cache_path = cache_path
+
+    def _digest(self, content):
+        """docstring for _digest"""
+        m = hashlib.sha256()
+        m.update(content)
+        return m.hexdigest()
+
+    def _empty_cache(self):
+        return {'html': {}, 'xhtml': {}}
+
+    _TRIM_RE = re.compile('^(?:\\./)?')
+    _HTML_SUF_RE = re.compile(r'.*\.html?$')
+    _XHTML_SUF_RE = re.compile(r'.*\.xhtml?$')
+    _SUF_RE = re.compile(r'\.[^\.]*$')
 
     def run(self):
         """
-        :returns boolean for sucess or failure.
+        :returns boolean for success or failure.
         """
         t = tempfile.TemporaryDirectory()
+        # t = VnuValidate(0, 0, 0, 0)
+        # t.name = "/tmp/zjzj"
+        try:
+            if self.cache_path:
+                whitelist = json.load(
+                    open(self.cache_path, 'rb'))['vnu_valid']['cache'][
+                            'sha256']
+        except FileNotFoundError:
+            whitelist = self._empty_cache()
+        which = {}
+        greylist = self._empty_cache()
+
+        def _mytrim(s):
+            return self._TRIM_RE.sub('', s)
+
         for dirpath, _, fns in os.walk(self.path):
-            dn = join(t.name, dirpath)
+            dn = _mytrim(join(t.name, _mytrim(dirpath)))
             os.makedirs(dn)
             for fn in fns:
-                path = join(dirpath, fn)
+                path = _mytrim(join(dirpath, fn))
                 if self.skip_cb(path):
                     continue
-                html = re.match(r'.*\.html?$', fn)
-                if re.match('.*\\.xhtml$', fn) or (
+                html = self._HTML_SUF_RE.match(fn)
+                out_fn = None
+                if self._XHTML_SUF_RE.match(fn) or (
                         html and not self.non_xhtml_cb(path)):
-                    open(join(dn, re.sub('\.[^\.]*$', '.xhtml',
-                                         fn)), 'w').write(
-                        open(join(dirpath, fn)).read())
+                    out_fn = self._SUF_RE.sub('.xhtml', fn)
                 elif html:
-                    open(join(dn, fn), 'w').write(
-                        open(path).read())
+                    out_fn = fn
 
-        return call(['java', '-jar', self.jar, '--Werror',
-                     '--skip-non-html', t.name]) == 0
+                if out_fn:
+                    c = open(path, 'rb').read()
+                    d = self._digest(c)
+                    format_ = 'html' if html else 'xhtml'
+                    if d not in whitelist[format_]:
+                        fn = join(dn, out_fn)
+                        open(fn, 'wb').write(c)
+                        which[fn] = format_
+                        greylist[format_][d] = True
+
+        cmd = ['java', '-jar', self.jar, '--format', 'json', '--Werror',
+               '--skip-non-html', t.name]
+        print(" ".join(cmd))
+        # import sys
+        # sys.exit(0)
+        with Popen(cmd, stderr=PIPE) as ret:
+            ret.wait()
+            text = ret.stderr.read()
+            data = json.loads(text)
+            blacklist = self._empty_cache()
+            found = set()
+            for msg in data['messages']:
+                print(msg)
+                url = msg['url']
+                fn = urlparse(url).path
+                if fn not in found:
+                    found.add(fn)
+                    d = self._digest(open(fn, 'rb').read())
+                    blacklist[which[fn]][d] = True
+            for format_ in ['html', 'xhtml']:
+                for k in list(greylist[format_].keys()):
+                    if k not in blacklist[format_]:
+                        whitelist[format_][k] = True
+            if self.cache_path:
+                json.dump({'vnu_valid': {'cache': {'sha256': whitelist}}},
+                          open(self.cache_path, 'w'))
+            return len(blacklist['html']) + len(blacklist['xhtml']) == 0
 
 
 class VnuTest(unittest.TestCase):
     """
     One can find some examples for this here:
 
-    * https://github.com/shlomif/better-scm/blob/master/Tests/validate-html-using-vnu.py
-    * https://github.com/shlomif/perl-begin/blob/master/Tests/validate-html-using-vnu.py
-    * https://github.com/shlomif/shlomi-fish-homepage/blob/master/Tests/validate-html-using-vnu.py
     """
-    def vnu_test_dir(self, path, non_xhtml_cb, skip_cb):
+    def vnu_test_dir(self, path, non_xhtml_cb, skip_cb, cache_path=None):
         """
         A unit test helper for checking a directory tree.
         :param path the path of the root directory
         :param non_xhtml_cb A callback that accepts a path and returns whether
         it
         :param skip_cb Return whether a path should be skipped entirely
+        :param cache_path An optional path to a cache file to speed up
+        subsequent runs
 
         Uses an environment variable HTML_VALID_VNU_JAR that points to the
         validator .jar (see https://github.com/validator/validator/ ).
@@ -73,7 +140,7 @@ class VnuTest(unittest.TestCase):
         if key in os.environ:
             self.assertTrue(
                 VnuValidate(path, os.environ[key], non_xhtml_cb,
-                            skip_cb).run(),
+                            skip_cb, cache_path).run(),
                 "passed validation")
         else:
             self.assertTrue(True, key + ' not set')
