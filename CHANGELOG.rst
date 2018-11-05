@@ -2,6 +2,11 @@
 Changelog
 =========
 
+0.4.1 (2018-11-05)
+------------------
+
+* Fix a regression when cache_path is not specified.
+
 0.4.0 (2018-11-05)
 ------------------
 
