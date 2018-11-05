@@ -2,6 +2,11 @@
 Changelog
 =========
 
+0.4.2 (2018-11-06)
+------------------
+
+* Enhance the README to explain what it is all about.
+
 0.4.1 (2018-11-05)
 ------------------
 

@@ -60,7 +60,17 @@ Overview
 
 .. end-badges
 
-Python Wrapper for the v.Nu HTML Validator
+Python Wrapper for the v.Nu HTML Validator. It allows one to recursively test
+a directory
+of XHTML5 or HTML5 files for HTML validity (see
+https://www.shlomifish.org/philosophy/computers/web/validate-your-html/ and
+https://github.com/validator/validator/ ). It provides a caching feature for
+speedup of subsequent runs.
+
+See:
+
+::
+   pydoc vnu-validator
 
 * Free software: MIT license
 
