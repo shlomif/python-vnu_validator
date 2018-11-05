@@ -51,13 +51,14 @@ class VnuValidate:
         t = tempfile.TemporaryDirectory()
         # t = VnuValidate(0, 0, 0, 0)
         # t.name = "/tmp/zjzj"
+        whitelist = self._empty_cache()
         try:
             if self.cache_path:
                 whitelist = json.load(
                     open(self.cache_path, 'rb'))['vnu_valid']['cache'][
                             'sha256']
         except FileNotFoundError:
-            whitelist = self._empty_cache()
+            pass
         which = {}
         greylist = self._empty_cache()
 
