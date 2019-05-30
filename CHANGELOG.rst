@@ -2,6 +2,11 @@
 Changelog
 =========
 
+0.4.3 (2019-05-30)
+------------------
+
+* Python 2.7.x compatibility. ( https://github.com/shlomif/python-vnu_validator/issues/2 )
+
 0.4.2 (2018-11-06)
 ------------------
 

@@ -3,12 +3,14 @@ __version__ = '0.1.0'
 import hashlib
 import json
 import os
-from os.path import join
 import re
+import shutil
 import tempfile
-from subprocess import Popen, PIPE
-from urllib.parse import urlparse
 import unittest
+from os.path import join
+from subprocess import PIPE, Popen
+
+from six.moves.urllib.parse import urlparse
 
 
 class VnuValidate:
@@ -48,7 +50,8 @@ class VnuValidate:
         """
         :returns boolean for success or failure.
         """
-        t = tempfile.TemporaryDirectory()
+        # t = tempfile.TemporaryDirectory()
+        tname = tempfile.mkdtemp()
         # t = VnuValidate(0, 0, 0, 0)
         # t.name = "/tmp/zjzj"
         whitelist = self._empty_cache()
@@ -66,7 +69,7 @@ class VnuValidate:
             return self._TRIM_RE.sub('', s)
 
         for dirpath, _, fns in os.walk(self.path):
-            dn = _mytrim(join(t.name, _mytrim(dirpath)))
+            dn = _mytrim(join(tname, _mytrim(dirpath)))
             os.makedirs(dn)
             for fn in fns:
                 path = _mytrim(join(dirpath, fn))
@@ -91,32 +94,35 @@ class VnuValidate:
                         greylist[format_][d] = True
 
         cmd = ['java', '-jar', self.jar, '--format', 'json', '--Werror',
-               '--skip-non-html', t.name]
+               '--skip-non-html', tname]
         print(" ".join(cmd))
         # import sys
         # sys.exit(0)
-        with Popen(cmd, stderr=PIPE) as ret:
-            ret.wait()
-            text = ret.stderr.read()
-            data = json.loads(text)
-            blacklist = self._empty_cache()
-            found = set()
-            for msg in data['messages']:
-                print(msg)
-                url = msg['url']
-                fn = urlparse(url).path
-                if fn not in found:
-                    found.add(fn)
-                    d = self._digest(open(fn, 'rb').read())
-                    blacklist[which[fn]][d] = True
-            for format_ in ['html', 'xhtml']:
-                for k in list(greylist[format_].keys()):
-                    if k not in blacklist[format_]:
-                        whitelist[format_][k] = True
-            if self.cache_path:
-                json.dump({'vnu_valid': {'cache': {'sha256': whitelist}}},
-                          open(self.cache_path, 'w'))
-            return len(blacklist['html']) + len(blacklist['xhtml']) == 0
+        verdict = False
+        ret = Popen(cmd, stderr=PIPE)
+        ret.wait()
+        text = ret.stderr.read()
+        data = json.loads(text)
+        blacklist = self._empty_cache()
+        found = set()
+        for msg in data['messages']:
+            print(msg)
+            url = msg['url']
+            fn = urlparse(url).path
+            if fn not in found:
+                found.add(fn)
+                d = self._digest(open(fn, 'rb').read())
+                blacklist[which[fn]][d] = True
+        for format_ in ['html', 'xhtml']:
+            for k in list(greylist[format_].keys()):
+                if k not in blacklist[format_]:
+                    whitelist[format_][k] = True
+        if self.cache_path:
+            json.dump({'vnu_valid': {'cache': {'sha256': whitelist}}},
+                      open(self.cache_path, 'w'))
+        verdict = (len(blacklist['html']) + len(blacklist['xhtml']) == 0)
+        shutil.rmtree(tname)
+        return verdict
 
 
 class VnuTest(unittest.TestCase):

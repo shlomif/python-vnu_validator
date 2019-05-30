@@ -24,7 +24,7 @@ def read(*names, **kwargs):
 
 setup(
     name='vnu-validator',
-    version='0.4.2',
+    version='0.4.3',
     license='MIT license',
     description='Python Wrapper for the v.Nu HTML Validator',
     long_description='%s\n%s' % (
@@ -66,6 +66,7 @@ setup(
         # eg: 'keyword1', 'keyword2', 'keyword3',
     ],
     install_requires=[
+        'six>=1.12',
         # eg: 'aspectlib==1.1.1', 'six>=1.7',
     ],
     extras_require={
