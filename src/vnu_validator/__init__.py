@@ -125,6 +125,32 @@ class VnuValidate:
         return verdict
 
 
+class VnuSingleFileValidate:
+    """
+    Run the Nu HTML Validator on a single file
+
+    :param path the path of the single file
+    :param jar path to the Java .jar of the Nu validator
+    :param non_xhtml Whether it is not xhtml.
+    subsequent runs
+    """
+    def __init__(self, path, jar, non_xhtml):
+        self.path = path
+        self.jar = jar
+        self.non_xhtml_cb = lambda path: non_xhtml
+
+    def run(self):
+        """
+        :returns boolean for success or failure.
+        """
+        # t = tempfile.TemporaryDirectory()
+        tname = tempfile.mkdtemp()
+        open(join(tname, "foo.html"), 'wb').write(open(self.path, 'rb').read())
+        verdict = VnuValidate(tname, self.jar, self.non_xhtml_cb, lambda p: False).run()
+        shutil.rmtree(tname)
+        return verdict
+
+
 class VnuTest(unittest.TestCase):
     """
     One can find some examples for this here:
