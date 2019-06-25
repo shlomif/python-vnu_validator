@@ -13,7 +13,7 @@ from subprocess import PIPE, Popen
 from six.moves.urllib.parse import urlparse
 
 
-class VnuValidate:
+class VnuValidate(object):
     """
     Run the Nu HTML Validator on a directory tree of XHTML5 and HTML5 files.
 
@@ -125,7 +125,7 @@ class VnuValidate:
         return verdict
 
 
-class VnuSingleFileValidate:
+class VnuSingleFileValidate(object):
     """
     Run the Nu HTML Validator on a single file
 
