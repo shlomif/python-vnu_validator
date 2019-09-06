@@ -5,12 +5,23 @@ import json
 import os
 import re
 import shutil
+import sys
 import tempfile
 import unittest
 from os.path import join
 from subprocess import PIPE, Popen
 
 from six.moves.urllib.parse import urlparse
+
+
+DONT_DELETE_TEMP = True if int(os.getenv('VNU_DONT_DELETE_TEMP', '0')) == 1 else False
+
+
+def _temp_rmtree(tname):
+    if DONT_DELETE_TEMP:
+        sys.stderr.write('Keeping %s\n' % (tname))
+    else:
+        shutil.rmtree(tname)
 
 
 class VnuValidate(object):
@@ -24,6 +35,9 @@ class VnuValidate(object):
     :param skip_cb Return whether a path should be skipped entirely
     :param cache_path An optional path to a cache file to speed up
     subsequent runs
+
+    Set the VNU_DONT_DELETE_TEMP to 1 to avoid deleting the temp dir
+    (for debugging).
     """
     def __init__(self, path, jar, non_xhtml_cb, skip_cb, cache_path=None):
         self.path = path
@@ -121,7 +135,7 @@ class VnuValidate(object):
             json.dump({'vnu_valid': {'cache': {'sha256': whitelist}}},
                       open(self.cache_path, 'w'))
         verdict = (len(blacklist['html']) + len(blacklist['xhtml']) == 0)
-        shutil.rmtree(tname)
+        _temp_rmtree(tname)
         return verdict
 
 
@@ -147,7 +161,7 @@ class VnuSingleFileValidate(object):
         tname = tempfile.mkdtemp()
         open(join(tname, "foo.html"), 'wb').write(open(self.path, 'rb').read())
         verdict = VnuValidate(tname, self.jar, self.non_xhtml_cb, lambda p: False).run()
-        shutil.rmtree(tname)
+        _temp_rmtree(tname)
         return verdict
 
 
