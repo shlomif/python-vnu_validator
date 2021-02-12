@@ -170,7 +170,12 @@ class VnuSingleFileValidate(object):
         # t = tempfile.TemporaryDirectory()
         tname = tempfile.mkdtemp()
         _bin_spew(join(tname, "foo.html"), _bin_slurp(self.path, 'rb'))
-        verdict = VnuValidate(tname, self.jar, self.non_xhtml_cb, lambda p: False).run()
+        verdict = VnuValidate(
+            path=tname,
+            jar=self.jar,
+            non_xhtml_cb=self.non_xhtml_cb,
+            skip_cb=lambda p: False
+        ).run()
         _temp_rmtree(tname)
         return verdict
 
@@ -196,8 +201,13 @@ class VnuTest(unittest.TestCase):
         key = 'HTML_VALID_VNU_JAR'
         if key in os.environ:
             self.assertTrue(
-                VnuValidate(path, os.environ[key], non_xhtml_cb,
-                            skip_cb, cache_path).run(),
+                VnuValidate(
+                    path=path,
+                    jar=os.environ[key],
+                    non_xhtml_cb=non_xhtml_cb,
+                    skip_cb=skip_cb,
+                    cache_path=cache_path
+                ).run(),
                 "passed validation")
         else:
             self.assertTrue(True, key + ' not set')
