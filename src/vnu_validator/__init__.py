@@ -1,4 +1,4 @@
-__version__ = '0.1.0'
+__version__ = '0.8.1'
 
 import hashlib
 import json
@@ -15,6 +15,16 @@ from six.moves.urllib.parse import urlparse
 
 
 DONT_DELETE_TEMP = True if int(os.getenv('VNU_DONT_DELETE_TEMP', '0')) == 1 else False
+
+
+def _bin_slurp(fn):
+    with open(fn, 'rb') as f:
+        return f.read()
+
+
+def _bin_spew(fn, content):
+    with open(fn, 'wb') as f:
+        f.write(content)
 
 
 def _temp_rmtree(tname):
@@ -72,7 +82,7 @@ class VnuValidate(object):
         try:
             if self.cache_path:
                 whitelist = json.load(
-                    open(self.cache_path, 'rb'))['vnu_valid']['cache'][
+                    _bin_slurp(self.cache_path))['vnu_valid']['cache'][
                             'sha256']
         except FileNotFoundError:
             pass
@@ -98,12 +108,12 @@ class VnuValidate(object):
                     out_fn = fn
 
                 if out_fn:
-                    c = open(path, 'rb').read()
+                    c = _bin_slurp(path)
                     d = self._digest(c)
                     format_ = 'html' if html else 'xhtml'
                     if d not in whitelist[format_]:
                         fn = join(dn, out_fn)
-                        open(fn, 'wb').write(c)
+                        _bin_spew(fn, c)
                         which[fn] = format_
                         greylist[format_][d] = True
 
@@ -125,15 +135,15 @@ class VnuValidate(object):
             fn = urlparse(url).path
             if fn not in found:
                 found.add(fn)
-                d = self._digest(open(fn, 'rb').read())
+                d = self._digest(_bin_slurp(fn))
                 blacklist[which[fn]][d] = True
         for format_ in ['html', 'xhtml']:
             for k in list(greylist[format_].keys()):
                 if k not in blacklist[format_]:
                     whitelist[format_][k] = True
         if self.cache_path:
-            json.dump({'vnu_valid': {'cache': {'sha256': whitelist}}},
-                      open(self.cache_path, 'w'))
+            with open(self.cache_path, 'w') as json_fh:
+                json.dump({'vnu_valid': {'cache': {'sha256': whitelist}}}, json_fh)
         verdict = (len(blacklist['html']) + len(blacklist['xhtml']) == 0)
         _temp_rmtree(tname)
         return verdict
@@ -159,7 +169,7 @@ class VnuSingleFileValidate(object):
         """
         # t = tempfile.TemporaryDirectory()
         tname = tempfile.mkdtemp()
-        open(join(tname, "foo.html"), 'wb').write(open(self.path, 'rb').read())
+        _bin_spew(join(tname, "foo.html"), _bin_slurp(self.path, 'rb'))
         verdict = VnuValidate(tname, self.jar, self.non_xhtml_cb, lambda p: False).run()
         _temp_rmtree(tname)
         return verdict
