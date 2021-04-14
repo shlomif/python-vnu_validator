@@ -2,6 +2,11 @@
 Changelog
 =========
 
+0.8.2 (2021-04-14)
+------------------
+
+* Fixes for json cache_path due to overzealous refactoring.
+
 0.8.1 (2021-02-12)
 ------------------
 

@@ -24,7 +24,7 @@ def read(*names, **kwargs):
 
 setup(
     name='vnu-validator',
-    version='0.8.1',
+    version='0.8.2',
     license='MIT license',
     description='Python Wrapper for the v.Nu HTML Validator',
     long_description='%s\n%s' % (
@@ -54,6 +54,8 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         # uncomment if you test on these interpreters:

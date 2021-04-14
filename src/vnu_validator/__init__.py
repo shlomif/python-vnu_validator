@@ -1,4 +1,4 @@
-__version__ = '0.8.1'
+__version__ = '0.8.2'
 
 import hashlib
 import json
@@ -81,9 +81,10 @@ class VnuValidate(object):
         whitelist = self._empty_cache()
         try:
             if self.cache_path:
-                whitelist = json.load(
-                    _bin_slurp(self.cache_path))['vnu_valid']['cache'][
-                            'sha256']
+                with open(self.cache_path, 'rt') as json_fh:
+                    whitelist = json.load(
+                        json_fh)['vnu_valid']['cache'][
+                                'sha256']
         except FileNotFoundError:
             pass
         which = {}
