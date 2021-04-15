@@ -65,7 +65,7 @@ class VnuValidate(object):
     def _empty_cache(self):
         return {'html': {}, 'xhtml': {}}
 
-    _TRIM_RE = re.compile('^(?:\\./)?')
+    _TRIM_RE = re.compile('^(?:(?:\\.)?/)?')
     _HTML_SUF_RE = re.compile(r'.*\.html?$')
     _XHTML_SUF_RE = re.compile(r'.*\.xhtml?$')
     _SUF_RE = re.compile(r'\.[^\.]*$')
@@ -93,11 +93,17 @@ class VnuValidate(object):
         def _mytrim(s):
             return self._TRIM_RE.sub('', s)
 
+        # print('dirpath =', self.path)
         for dirpath, _, fns in os.walk(self.path):
-            dn = _mytrim(join(tname, _mytrim(dirpath)))
-            os.makedirs(dn)
+            # print('tname =', tname)
+            dn = (join(tname, _mytrim(dirpath)))
+            # print('got dn mytrim =', dn)
+            try:
+                os.makedirs(dn)
+            except FileExistsError:
+                pass
             for fn in fns:
-                path = _mytrim(join(dirpath, fn))
+                path = (join(dirpath, fn))
                 if self.skip_cb(path):
                     continue
                 html = self._HTML_SUF_RE.match(fn)
@@ -107,15 +113,17 @@ class VnuValidate(object):
                     out_fn = self._SUF_RE.sub('.xhtml', fn)
                 elif html:
                     out_fn = fn
+                # print('before =', fn)
 
                 if out_fn:
                     c = _bin_slurp(path)
                     d = self._digest(c)
                     format_ = 'html' if html else 'xhtml'
                     if d not in whitelist[format_]:
-                        fn = join(dn, out_fn)
-                        _bin_spew(fn, c)
-                        which[fn] = format_
+                        dest_fn = join(tname, dn, out_fn)
+                        _bin_spew(dest_fn, c)
+                        # print('dest_fn =', dest_fn)
+                        which[dest_fn] = format_
                         greylist[format_][d] = True
 
         cmd = ['java', '-jar', self.jar, '--format', 'json', '--Werror',
@@ -170,7 +178,7 @@ class VnuSingleFileValidate(object):
         """
         # t = tempfile.TemporaryDirectory()
         tname = tempfile.mkdtemp()
-        _bin_spew(join(tname, "foo.html"), _bin_slurp(self.path, 'rb'))
+        _bin_spew(join(tname, "foo.html"), _bin_slurp(self.path))
         verdict = VnuValidate(
             path=tname,
             jar=self.jar,
