@@ -4,9 +4,7 @@ Changelog
 0.8.3 (2021-04-16)
 ------------------
 
-* Add examples/single_file_check.py (
-https://github.com/shlomif/python-vnu_validator/issues/5 ) - thanks to
-https://github.com/sergiomb2 )
+* Add examples/single_file_check.py ( https://github.com/shlomif/python-vnu_validator/issues/5 ). Thanks to https://github.com/sergiomb2 .
 
 * Related fixes ("with open"/etc.).
 
