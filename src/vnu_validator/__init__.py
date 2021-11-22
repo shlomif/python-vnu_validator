@@ -12,6 +12,7 @@ from os.path import join
 from subprocess import PIPE, Popen
 
 from six.moves.urllib.parse import urlparse
+from vnu_validator.downloadcontent import downloadcontent
 
 
 DONT_DELETE_TEMP = True if int(os.getenv('VNU_DONT_DELETE_TEMP', '0')) == 1 else False
@@ -178,7 +179,8 @@ class VnuSingleFileValidate(object):
         """
         # t = tempfile.TemporaryDirectory()
         tname = tempfile.mkdtemp()
-        _bin_spew(join(tname, "foo.html"), _bin_slurp(self.path))
+        url, content, text_aux = downloadcontent(self.path)
+        _bin_spew(join(tname, "foo.html"), content)
         verdict = VnuValidate(
             path=tname,
             jar=self.jar,
