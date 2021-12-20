@@ -20,7 +20,8 @@ DONT_DELETE_TEMP = True if int(
 
 def _bin_slurp(fn):
     with open(fn, 'rb') as f:
-        return f.read()
+        ret = f.read()
+    return ret
 
 
 def _bin_spew(fn, content):
@@ -136,6 +137,9 @@ class VnuValidate(object):
         with Popen(cmd, stderr=PIPE) as ret:
             ret.wait()
             text = ret.stderr.read()
+            ret.stderr.close()
+            ret.kill()
+            ret.wait()
         data = json.loads(text)
         blacklist = self._empty_cache()
         found = set()
