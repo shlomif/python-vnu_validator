@@ -9,8 +9,9 @@ class MyTest(VnuTest):
         self.assertTrue(True, "for tests count")
 
 
-def test_main():
+def mytest_main():
     unittest.main()
 
 
-test_main()
+if __name__ == "__main__":
+    mytest_main()

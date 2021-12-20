@@ -37,6 +37,6 @@ obj = Derived(
     project_email="shlomif@cpan.org",
     full_name="Shlomi Fish",
     github_username="shlomif",
-    filter_test_reqs=True,
+    # filter_test_reqs=True,
 )
 obj.run_command(cmd=cmd, args=[])
