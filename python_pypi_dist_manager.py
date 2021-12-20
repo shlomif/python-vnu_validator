@@ -21,7 +21,7 @@ try:
 except IndexError:
     cmd = 'build'
 
-dist_name = "vnu-validator"
+dist_name = "vnu_validator"
 
 obj = Derived(
     dist_name=dist_name,
