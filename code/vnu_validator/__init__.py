@@ -14,7 +14,8 @@ from subprocess import PIPE, Popen
 from six.moves.urllib.parse import urlparse
 
 
-DONT_DELETE_TEMP = True if int(os.getenv('VNU_DONT_DELETE_TEMP', '0')) == 1 else False
+DONT_DELETE_TEMP = True if int(
+    os.getenv('VNU_DONT_DELETE_TEMP', '0')) == 1 else False
 
 
 def _bin_slurp(fn):
@@ -132,9 +133,9 @@ class VnuValidate(object):
         # import sys
         # sys.exit(0)
         verdict = False
-        ret = Popen(cmd, stderr=PIPE)
-        ret.wait()
-        text = ret.stderr.read()
+        with Popen(cmd, stderr=PIPE) as ret:
+            ret.wait()
+            text = ret.stderr.read()
         data = json.loads(text)
         blacklist = self._empty_cache()
         found = set()
@@ -152,7 +153,8 @@ class VnuValidate(object):
                     whitelist[format_][k] = True
         if self.cache_path:
             with open(self.cache_path, 'w') as json_fh:
-                json.dump({'vnu_valid': {'cache': {'sha256': whitelist}}}, json_fh)
+                json.dump(
+                    {'vnu_valid': {'cache': {'sha256': whitelist}}}, json_fh)
         verdict = (len(blacklist['html']) + len(blacklist['xhtml']) == 0)
         _temp_rmtree(tname)
         return verdict

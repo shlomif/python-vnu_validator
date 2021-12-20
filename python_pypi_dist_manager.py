@@ -13,7 +13,10 @@ from pydistman import DistManager
 
 class Derived(DistManager):
     """docstring for Derived"""
-    pass
+    def _build_only_command_custom_steps(self):
+        for fn in self._src_glob("tests/data/*"):
+            self._dest_append(fn)
+        return
 
 
 try:
