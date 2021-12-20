@@ -135,11 +135,11 @@ class VnuValidate(object):
         # sys.exit(0)
         verdict = False
         with Popen(cmd, stderr=PIPE) as ret:
-            ret.wait()
+            # ret.wait()
             text = ret.stderr.read()
-            ret.stderr.close()
+            # ret.stderr.close()
             ret.kill()
-            ret.wait()
+            # ret.wait()
         data = json.loads(text)
         blacklist = self._empty_cache()
         found = set()

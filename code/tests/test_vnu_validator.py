@@ -6,6 +6,7 @@ class MyTest(VnuTest):
     """docstring for MyTest"""
     def test_my(self):
         self.vnu_test_dir('./tests/data', lambda x: False, lambda x: False)
+        self.assertTrue(True, "for tests count")
 
 
 def test_main():

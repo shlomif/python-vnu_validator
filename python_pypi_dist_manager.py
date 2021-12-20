@@ -28,7 +28,7 @@ dist_name = "vnu_validator"
 
 obj = Derived(
     dist_name=dist_name,
-    dist_version="0.10.0",
+    dist_version="0.9.3",
     project_name=dist_name,
     project_short_description="Python Wrapper for the v.Nu HTML Validator",
     release_date="2021-12-20",
