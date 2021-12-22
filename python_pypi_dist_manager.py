@@ -6,8 +6,6 @@
 #
 # Distributed under the terms of the MIT license.
 
-import sys
-
 from pydistman import DistManager
 
 
@@ -18,11 +16,6 @@ class Derived(DistManager):
             self._dest_append(fn)
         return
 
-
-try:
-    cmd = sys.argv.pop(1)
-except IndexError:
-    cmd = 'build'
 
 dist_name = "vnu_validator"
 
@@ -39,4 +32,4 @@ obj = Derived(
     github_username="shlomif",
     # filter_test_reqs=True,
 )
-obj.run_command(cmd=cmd, args=[])
+obj.cli_run()
